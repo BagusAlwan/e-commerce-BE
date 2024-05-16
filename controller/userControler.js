@@ -4,6 +4,7 @@ const asyncHandler = require("express-async-handler");
 const validateMongoId = require('../utils/validateMongoId');
 const { generateRefreshToken } = require('../config/refreshToken');
 const jwt = require('jsonwebtoken');
+const sendEmail = require('./emailControler');
 //Create a user
 const createUser = asyncHandler(async (req, res) => {
     const email = req.body.email;
@@ -180,5 +181,41 @@ const unblockUser = asyncHandler(async(req, res) => {
     } catch (error) {
         throw new Error(error)
     }
+});
+
+const updatePassword = asyncHandler(async (req, res) => {
+    const {_id } = req.user;
+    const { password } = req.body;
+    validateMongoId(_id);
+    const user = await User.findById(_id);
+    if(password){
+        user.password = password;
+        const updatedPassword = await user.save();
+        res.json(updatedPassword)
+    }else{
+        res.json(user);
+    }
 })
-module.exports = { createUser, loginUser, getAllUser, getUser, deleteUser, updateUser, blockUser, unblockUser, handleRefreshToken, logout };
+
+const forgorPasswordToken = asyncHandler(async(req, res) => {
+    const { email } = req.body;
+    const user = await User.findOne( {email} );
+    if(!user) throw new Error ("User not found with this email");
+    try {
+        const token = await user.createPasswordResetToken();
+        await user.save();
+        const resetURL = `HI, Please follow this link to reset your password, this valid will only last for 10 minutes. <a href='http://localhost:9090/api/user/reset-password/${token}> Click Here </>`
+        const data = {
+            to: email,
+            subject: "Forgot Password Link",
+            text: "Hey User",
+            htm: resetURL
+        };
+        sendEmail(data);
+        res.json(token);
+    } catch (error) {
+        throw new Error(error);
+    }
+});
+
+module.exports = { createUser, loginUser, getAllUser, getUser, deleteUser, updateUser, blockUser, unblockUser, handleRefreshToken, logout, updatePassword, forgorPasswordToken };
