@@ -1,5 +1,5 @@
 const express = require('express');
-const { createUser, loginUser, getAllUser, getUser, deleteUser, updateUser, blockUser, unblockUser, handleRefreshToken, logout, updatePassword, forgorPasswordToken } = require('../controller/userControler');
+const { createUser, loginUser, getAllUser, getUser, deleteUser, updateUser, blockUser, unblockUser, handleRefreshToken, logout, updatePassword, forgotPasswordToken, resetPassword } = require('../controller/userControler');
 const { authMiddleware, isAdmin } = require('../middlewares/authMiddleware');
 const router = express.Router();
 
@@ -14,5 +14,6 @@ router.put('/edit-user', authMiddleware, updateUser);
 router.put('/block-user/:id', authMiddleware, isAdmin, blockUser);
 router.put('/unblock-user/:id', authMiddleware, isAdmin, unblockUser);
 router.put('/changePass', authMiddleware ,updatePassword)
-router.post('/forgot-password-token', forgorPasswordToken)
+router.post('/forgot-password-token', forgotPasswordToken)
+router.put('/reset-password/:token', resetPassword)
 module.exports = router;
