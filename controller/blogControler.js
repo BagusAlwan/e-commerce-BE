@@ -26,10 +26,10 @@ const updateBlog = asyncHandler(async (req, res ) => {
 })
 
 const getBlog = asyncHandler(async (req, res ) => {
-    const { id } = req.params
+    const { id } = req.params;
     validateMongoId(id)
     try {
-        const getBlog = await Blog.findById(id);
+        const getBlog = await Blog.findById(id).populate('likes').populate('dislikes');
         await Blog.findByIdAndUpdate(id, {
           $inc: { numView: 1},  
         }, {
@@ -78,7 +78,7 @@ const likeBlog = asyncHandler( async(req, res) => {
     if(alrDisliked) {
         const blog = await Blog.findByIdAndUpdate(blogId, {
             $pull: { dislikes: loginUserId },
-            isDisliked: false
+            isDisliked: false,
         },{
             new: true,
         });
@@ -119,7 +119,7 @@ const dislikeBlog = asyncHandler( async(req, res) => {
     if(alrliked) {
         const blog = await Blog.findByIdAndUpdate(blogId, {
             $pull: { likes: loginUserId },
-            isLiked: false
+            isLiked: false,
         },{
             new: true,
         });
