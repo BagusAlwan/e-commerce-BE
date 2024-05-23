@@ -3,6 +3,8 @@ const validateMongoId = require('../utils/validateMongoId');
 const Product = require('../models/productModel');
 const User = require('../models/userModel');
 const slugify = require('slugify');
+const { cloudinaryUploadImg } = require('../utils/cloudinary');
+const fs = require("fs");
 
 const createProduct = asyncHandler(async (req, res) => {
     try {
@@ -190,4 +192,31 @@ const addToWishlist = asyncHandler(async (req, res) => {
     }
   });
 
-module.exports = {createProduct, getProduct, getAllProduct, updateProduct, deleteProduct, addToWishlist, rating}
+  const uploadImages = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    validateMongoId(id);
+    try {
+      const uploader = (path) => cloudinaryUploadImg(path, "iamges");
+      const urls = [];
+      const files = req.files;
+      for (const file of files) {
+        const { path } = file;
+        const newpath = await uploader(path);
+        console.log(newpath)
+        urls.push(newpath);
+        fs.unlinkSync(path);
+      }
+      const findProduct = await Product.findByIdAndUpdate(id, {
+        images: urls.map((file) => {return file})
+      },{
+        new: true,
+      });
+      res.json(findProduct)
+    } catch (error) {
+      throw new Error(error)
+    }
+  })
+
+  
+
+module.exports = {createProduct, getProduct, getAllProduct, updateProduct, deleteProduct, addToWishlist, rating, uploadImages}

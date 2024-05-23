@@ -79,6 +79,8 @@ const likeBlog = asyncHandler( async(req, res) => {
         const blog = await Blog.findByIdAndUpdate(blogId, {
             $pull: { dislikes: loginUserId },
             isDisliked: false,
+            $push: { likes: loginUserId },
+            isLiked: true
         },{
             new: true,
         });
